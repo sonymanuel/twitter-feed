@@ -4,8 +4,8 @@
 # https://devcenter.wercker.com/overview-and-core-concepts/containers/
 box: 
   id: openjdk:8
-  #ports:
-  #  - 8080
+  ports:
+    - $PORT
 
 # This is the build pipeline. Pipelines are the core of wercker
 # Read more about pipelines on our dev center
@@ -29,3 +29,17 @@ build:
     - script:
         name: maven build
         code: mvn clean assembly:assembly      
+
+push-release:
+  steps:
+    - internal/docker-push:
+      username: $DOCKER_USERNAME
+      password: $DOCKER_PASSWORD
+      repository: $DOCKER_REPO
+      registry: $DOCKER_REGISTRY
+      tag: $WERCKER_GIT_BRANCH-$WERCKER_GIT_COMMIT
+      working-dir: /pipeline/source
+      ports: $PORT
+      env PORT=$PORT
+      cmd: sh target/bin/start
+      
